@@ -1,0 +1,1 @@
+{ "outputDirectory": "public", "functions": { "api/query.py": { "includeFiles": "{*.py,*.md,api/**,public/**}" } } }

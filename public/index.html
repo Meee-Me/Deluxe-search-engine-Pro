@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Deluxe Search</title>
+<style>
+:root{--bg:#fff;--fg:#1a1a2e;--mute:#6b7280;--card:#f6f7fb;--acc:#5b5bf0;color-scheme:light dark}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1020;--fg:#eceaff;--mute:#9aa0b4;--card:#1a1b30;--acc:#8b8bff}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,sans-serif}
+main{max-width:720px;margin:0 auto;padding:12vh 16px 48px;transition:padding .3s}main.has{padding-top:32px}
+h1{font-size:2.2rem;margin:0 0 20px;text-align:center}h1 span{color:var(--acc)}
+input{width:100%;padding:16px 20px;font-size:1.1rem;border:2px solid transparent;border-radius:999px;background:var(--card);color:var(--fg);outline:0}
+input:focus{border-color:var(--acc)}
+.meta{color:var(--mute);font-size:.85rem;margin:16px 4px}
+.r{background:var(--card);border-radius:12px;padding:14px 18px;margin-bottom:12px}
+.r b{color:var(--acc);word-break:break-all}.r small{color:var(--mute);float:right}
+.r p{margin:6px 0 0;color:var(--mute);font-size:.92rem;overflow-wrap:anywhere}
+mark{background:#ffd54f55;color:inherit;border-radius:3px}
+</style></head><body><main id="m">
+<h1>Deluxe <span>Search</span></h1>
+<input id="q" placeholder="Search everything…" autofocus autocomplete="off" aria-label="Search">
+<div class="meta" id="meta" aria-live="polite"></div><div id="out"></div></main>
+<script>
+const $=id=>document.getElementById(id),esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let t,n=0;
+$("q").addEventListener("input",()=>{clearTimeout(t);t=setTimeout(go,200)});
+async function go(){
+  const q=$("q").value.trim(),id=++n;
+  $("m").classList.toggle("has",!!q);
+  if(!q){$("meta").textContent="";$("out").innerHTML="";return}
+  let d;try{d=await(await fetch("/api/query?q="+encodeURIComponent(q))).json()}catch{$("meta").textContent="Search failed";return}
+  if(id!==n)return; // stale response
+  const re=new RegExp("("+(q.match(/\w+/g)||["$^"]).join("|")+")","gi");
+  $("meta").textContent=`${d.results.length} results · ${d.docs} files indexed`;
+  $("out").innerHTML=d.results.map(r=>`<div class="r"><small>${r.score}</small><b>${esc(r.path)}</b><p>${esc(r.snippet).replace(re,"<mark>$1</mark>")}</p></div>`).join("");
+}
+</script></body></html>
