@@ -12,11 +12,11 @@ def tokens(text):
 class Index:
     def __init__(self):
         self.postings = defaultdict(dict)  # term -> {doc: count}
-        self.lengths = {}
+        self.lengths, self.text = {}, {}
 
     def add(self, doc, text):
         toks = tokens(text)
-        self.lengths[doc] = len(toks) or 1
+        self.lengths[doc], self.text[doc] = len(toks) or 1, text
         for t, c in Counter(toks).items():
             self.postings[t][doc] = c
 
@@ -39,6 +39,11 @@ class Index:
             for d, c in docs.items():
                 scores[d] += (c / self.lengths[d]) * idf
         return sorted(scores.items(), key=lambda x: -x[1])[:k]
+
+def snippet(text, query, width=160):
+    m = re.search("|".join(map(re.escape, set(tokens(query)))) or "$^", text, re.I)
+    i = max(0, (m.start() if m else 0) - width // 2)
+    return " ".join(text[i:i + width].split())
 
 def serve(ix, port):
     class H(BaseHTTPRequestHandler):
