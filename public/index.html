@@ -11,12 +11,12 @@ input{width:100%;padding:16px 20px;font-size:1.1rem;border:2px solid transparent
 input:focus{border-color:var(--acc)}
 .meta{color:var(--mute);font-size:.85rem;margin:16px 4px}
 .r{background:var(--card);border-radius:12px;padding:14px 18px;margin-bottom:12px}
-.r b{color:var(--acc);word-break:break-all}.r small{color:var(--mute);float:right}
+.r a{color:var(--acc);font-weight:600;text-decoration:none;font-size:1.05rem}.r a:hover{text-decoration:underline}.r u{display:block;color:var(--mute);font-size:.8rem;text-decoration:none;word-break:break-all}.r small{color:var(--mute);float:right}
 .r p{margin:6px 0 0;color:var(--mute);font-size:.92rem;overflow-wrap:anywhere}
 mark{background:#ffd54f55;color:inherit;border-radius:3px}
 </style></head><body><main id="m">
 <h1>Deluxe <span>Search</span></h1>
-<input id="q" placeholder="Search everything…" autofocus autocomplete="off" aria-label="Search">
+<input id="q" placeholder="Search the web…" autofocus autocomplete="off" aria-label="Search">
 <div class="meta" id="meta" aria-live="polite"></div><div id="out"></div></main>
 <script>
 const $=id=>document.getElementById(id),esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -26,10 +26,10 @@ async function go(){
   const q=$("q").value.trim(),id=++n;
   $("m").classList.toggle("has",!!q);
   if(!q){$("meta").textContent="";$("out").innerHTML="";return}
-  let d;try{d=await(await fetch("/api/query?q="+encodeURIComponent(q))).json()}catch{$("meta").textContent="Search failed";return}
+  let d;try{const r=await fetch("/api/query?q="+encodeURIComponent(q));if(!r.ok)throw 0;d=await r.json()}catch{if(id===n)$("meta").textContent="Search failed, try again";return}
   if(id!==n)return; // stale response
   const re=new RegExp("("+(q.match(/\w+/g)||["$^"]).join("|")+")","gi");
-  $("meta").textContent=`${d.results.length} results · ${d.docs} files indexed`;
-  $("out").innerHTML=d.results.map(r=>`<div class="r"><small>${r.score}</small><b>${esc(r.path)}</b><p>${esc(r.snippet).replace(re,"<mark>$1</mark>")}</p></div>`).join("");
+  $("meta").textContent=d.results.length?`${d.results.length} results · via ${d.source}`:"No results";
+  $("out").innerHTML=d.results.map(r=>`<div class="r"><u>${esc(r.url)}</u><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a><p>${esc(r.snippet).replace(re,"<mark>$1</mark>")}</p></div>`).join("");
 }
 </script></body></html>
