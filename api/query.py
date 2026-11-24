@@ -1,16 +1,31 @@
 """Web search. Serper if SERPER_API_KEY, else Brave if BRAVE_API_KEY, else Wikipedia (keyless)."""
-import html, json, os, re
+import html, json, os, re, time
+from concurrent.futures import ThreadPoolExecutor
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import parse_qs, quote, urlencode, urlparse
+from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 def clean(s):
     return html.unescape(re.sub(r"<[^>]+>", "", s or ""))
 
+class Upstream(RuntimeError):
+    def __init__(self, host, code, msg):
+        super().__init__(f"{host} said {code}: {msg}" if msg else f"{host} said {code}")
+        self.code = code
+
 def fetch(url, headers=None, body=None):
     req = Request(url, data=body, headers={"User-Agent": "DeluxeSearch/1.0", **(headers or {})})
-    with urlopen(req, timeout=8) as r:
-        return json.load(r)
+    try:
+        with urlopen(req, timeout=8) as r:
+            return json.load(r)
+    except HTTPError as e:  # keep the upstream's reason so the page can show it (never contains our key)
+        try:
+            err = json.load(e).get("error") or ""
+            msg = err.get("message", "") if isinstance(err, dict) else str(err)
+        except Exception:
+            msg = ""
+        raise Upstream(urlparse(url).netloc, e.code, msg[:150]) from None
 
 def parse_brave(d):
     return [{"title": clean(r["title"]), "url": r["url"], "site": host(r["url"]), "snippet": clean(r.get("description"))}
@@ -63,11 +78,19 @@ def ask(q, results, long=False):
     if not key or not results:
         return ""
     ctx = "\n".join(f"[{i}] {r['title']} ({r['site']}): {r['snippet']}" for i, r in enumerate(results, 1))
-    body = {"model": os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile"), "max_tokens": 700 if long else 350, "temperature": 0.2,
-            "messages": [{"role": "system", "content": SYSTEM + (" Write 2-3 short paragraphs." if long else " Keep it to 3-5 sentences.")}, {"role": "user", "content": f"Question: {q}\n\nResults:\n{ctx}"}]}
-    d = fetch("https://api.groq.com/openai/v1/chat/completions",
-              {"Authorization": "Bearer " + key, "Content-Type": "application/json"}, json.dumps(body).encode())
-    return d["choices"][0]["message"]["content"].strip()
+    models = [os.environ.get("GROQ_MODEL") or "llama-3.3-70b-versatile", "llama-3.1-8b-instant"]
+    for i, model in enumerate(models):
+        body = {"model": model, "max_tokens": 700 if long else 350, "temperature": 0.2,
+                "messages": [{"role": "system", "content": SYSTEM + (" Write 2-3 short paragraphs." if long else " Keep it to 3-5 sentences.")},
+                             {"role": "user", "content": f"Question: {q}\n\nResults:\n{ctx}"}]}
+        try:
+            d = fetch("https://api.groq.com/openai/v1/chat/completions",
+                      {"Authorization": "Bearer " + key, "Content-Type": "application/json"}, json.dumps(body).encode())
+            return d["choices"][0]["message"]["content"].strip()
+        except Upstream as e:
+            if e.code in (400, 404) and i < len(models) - 1:  # model retired or unknown: try the backup
+                continue
+            raise
 
 def suggest(q):
     """Type-ahead suggestions: free keyless endpoints (unofficial), Google then DuckDuckGo."""
@@ -79,12 +102,35 @@ def suggest(q):
             continue
     return []
 
+MAIN = os.environ.get("DELUXE_MAIN", "https://deluxe-main.vercel.app")
+
+def probe(site):
+    """Up = any HTTP answer below 500 (a 401 from a sign-in page still means the site is online)."""
+    t, code = time.time(), 0
+    try:
+        with urlopen(Request(site["url"], headers={"User-Agent": "DeluxeSearch/1.0"}), timeout=6) as r:
+            code = r.status
+    except HTTPError as e:
+        code = e.code
+    except Exception:
+        pass
+    return {**site, "up": 0 < code < 500, "code": code, "ms": round((time.time() - t) * 1000)}
+
+def check_sites(apps, probe=probe):
+    # URLs come only from Deluxe Main's own list; https only
+    sites = [{"name": "Deluxe Main", "about": "Your Deluxe account", "url": MAIN}] + [
+        {"name": a["name"], "about": a.get("about", ""), "url": a["url"]} for a in apps if str(a.get("url", "")).startswith("https://")]
+    with ThreadPoolExecutor(max_workers=10) as ex:
+        return list(ex.map(probe, sites))
+
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
         qs = parse_qs(urlparse(self.path).query)
         q = qs.get("q", [""])[0].strip()[:200]
         tab = qs.get("tab", ["all"])[0]
         try:
+            if qs.get("status"):
+                return self.reply({"sites": check_sites(fetch(MAIN + "/api/apps").get("apps", []))}, 200, "public, s-maxage=30")
             if qs.get("suggest"):
                 return self.reply({"suggestions": suggest(q) if q else []}, 200, "public, s-maxage=3600")
             if qs.get("ai") and q:  # separate call so the page shows results first
@@ -97,7 +143,7 @@ class handler(BaseHTTPRequestHandler):
             src, results, related = search(q, tab if tab in ("all", "images", "videos", "news") else "all") if q else ("", [], [])
             body, code = {"source": src, "results": results, "related": related}, 200
         except Exception as e:  # upstream down / bad key: tell the UI, don't 500 blank
-            body, code = {"error": type(e).__name__}, 502
+            body, code = {"error": str(e) if isinstance(e, RuntimeError) else type(e).__name__}, 502
         self.reply(body, code)
 
     def reply(self, body, code, cache=None):
@@ -124,13 +170,30 @@ if __name__ == "__main__":
     n = parse_serper({"news": [{"title": "N", "link": "https://bbc.co.uk/n", "source": "BBC", "date": "1 hour ago"}]}, "news")
     assert n[0]["meta"] == "BBC · 1 hour ago"
     fetch = lambda url, h=None, b=None: {"choices": [{"message": {"content": " Cats purr [1]. "}}]}
+    calls = []
+    def retired(url, h=None, b=None):
+        calls.append(json.loads(b)["model"])
+        if len(calls) == 1:
+            raise Upstream("api.groq.com", 404, "model decommissioned")
+        return {"choices": [{"message": {"content": "ok"}}]}
     os.environ.pop("GROQ_API_KEY", None)
     assert ask("cat", o) == ""
     os.environ["GROQ_API_KEY"] = "k"
     assert ask("cat", o) == "Cats purr [1]." and ask("cat", []) == ""
+    fetch = retired
+    assert ask("cat", o) == "ok" and calls == ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]
+    def denied(url, h=None, b=None): raise Upstream("api.groq.com", 401, "Invalid API Key")
+    fetch = denied
+    try: ask("cat", o); raise SystemExit("should raise")
+    except Upstream as e: assert e.code == 401 and "Invalid API Key" in str(e)
     fetch = lambda url, h=None, b=None: ["cat", ["cat", "cat exam", 5]]
     assert suggest("cat") == ["cat", "cat exam"]
     def boom(url, h=None, b=None): raise OSError
     fetch = boom
     assert suggest("cat") == []
+    fake = lambda x: {**x, "up": x["name"] != "Bad", "code": 200, "ms": 1}
+    got = check_sites([{"name": "A", "url": "https://a.b"}, {"name": "Bad", "url": "https://c.d"},
+                       {"name": "Evil", "url": "http://169.254.169.254/"}, {"name": "NoUrl"}], fake)
+    assert [g["name"] for g in got] == ["Deluxe Main", "A", "Bad"] and [g["up"] for g in got] == [True, True, False]
+    assert probe({"name": "x", "url": "https://localhost:1"})["up"] is False
     print("ok")

@@ -6,6 +6,7 @@
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="search" type="application/opensearchdescription+xml" title="Deluxe Search" href="/opensearch.xml">
 <meta name="theme-color" content="#4f46e5">
+<style>.acct{position:fixed;top:10px;right:12px;z-index:20}</style>
 <style>
 :root{--bg:#fff;--fg:#1f2430;--mute:#6b7280;--card:#f3f4f9;--acc:#4f46e5;--link:#1a56db;--line:#e5e7eb;color-scheme:light dark}
 @media(prefers-color-scheme:dark){:root{--bg:#0f1020;--fg:#eceaff;--mute:#9aa0b4;--card:#1a1b30;--acc:#8b8bff;--link:#8ab4ff;--line:#2a2c46}}
@@ -41,12 +42,14 @@ nav button[aria-selected=true]{color:var(--acc);border-color:var(--acc);font-wei
 .ai{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 18px;margin:0 0 24px;font-size:.95rem}.ai h2{font-size:.8rem;margin:0 0 6px;color:var(--acc);letter-spacing:.04em;text-transform:uppercase}.ai small{display:block;color:var(--mute);margin-top:8px;font-size:.75rem}.ai a{color:var(--link);text-decoration:none;font-weight:600}
 .def{margin-top:40px;font-size:.88rem;color:var(--mute)}.def summary{cursor:pointer;color:var(--acc);font-weight:600}
 .def ul{padding-left:18px}.def code{background:var(--card);padding:2px 6px;border-radius:6px;word-break:break-all}.def button{margin-top:6px;background:var(--acc);color:#fff;border:0;border-radius:999px;padding:8px 16px;font:inherit;cursor:pointer}
+.dot{width:10px;height:10px;border-radius:50%;flex:none}.dot.up{background:#22c55e}.dot.down{background:#ef4444}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.chips h2{width:100%;font-size:1rem;margin:0}
 .chips button{background:var(--card);border:1px solid var(--line);color:var(--fg);padding:8px 14px;border-radius:999px;font:inherit;font-size:.9rem;cursor:pointer}
-</style></head><body><main id="m">
+</style></head><body><div id="account" class="acct"></div>
+<main id="m">
 <h1><img src="/icon.svg" alt="" width="40" height="40"> Deluxe <span>Search</span></h1>
 <div class="box"><input id="q" type="text" placeholder="Search the web…" autofocus autocomplete="off" aria-label="Search" aria-autocomplete="list" enterkeyhint="search"><button id="aibtn" class="aib" type="button">AI Mode →</button><ul id="sug" role="listbox" hidden></ul></div>
-<div class="btns" id="btns"><button id="srch" type="button">Deluxe Search</button><button id="lucky" type="button">I'm Feeling Lucky</button></div>
+<div class="btns" id="btns"><button id="srch" type="button">Deluxe Search</button><button id="lucky" type="button">I'm Feeling Lucky</button><button id="mysites" type="button">My sites</button></div>
 <nav id="tabs" role="tablist"></nav>
 <div class="meta" id="meta" aria-live="polite"></div><div id="ai"></div><div id="out"></div><div class="chips" id="rel"></div><details class="def" id="def"><summary>Make Deluxe Search your default search engine</summary>
 <p>Your search URL: <code id="url"></code></p><button id="copy" type="button">Copy search URL</button>
@@ -54,11 +57,12 @@ nav button[aria-selected=true]{color:var(--acc);border-color:var(--acc);font-wei
 <li><b>Chrome (Android):</b> visit this site and search once, then Settings → Search engine → pick Deluxe Search.</li>
 <li><b>Firefox:</b> right-click the address bar and choose Add "Deluxe Search", then pick it in Settings → Search.</li>
 <li><b>Safari / iPhone:</b> Apple doesn't allow custom default engines. Use Share → Add to Home Screen to get an app icon instead.</li></ul></details></main>
+<script src="https://deluxe-main.vercel.app/deluxe.js" data-app="search"></script>
 <script>
 const $=id=>document.getElementById(id),
 esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])),
 safe=u=>/^https?:\/\//i.test(u)?esc(u):"#"; // blocks javascript: links from API data
-const TABS={ai:"✦ AI",all:"All",images:"Images",videos:"Videos",news:"News"};
+const TABS={ai:"✦ AI",all:"All",images:"Images",videos:"Videos",news:"News",sites:"My sites"};
 let tab="all",t,n=0;
 $("tabs").innerHTML=Object.entries(TABS).map(([k,v])=>`<button role="tab" data-t="${k}">${v}</button>`).join("");
 $("tabs").onclick=e=>{const k=e.target.dataset.t;if(k){tab=k;go()}};
@@ -79,6 +83,7 @@ $("q").addEventListener("keydown",e=>{
     [...$("sug").children].forEach((li,i)=>li.classList.toggle("on",i===sel));if(sel>=0)$("q").value=items[sel]}});
 $("aibtn").onclick=()=>{tab="ai";closeSug();go()};
 $("srch").onclick=()=>go();
+$("mysites").onclick=()=>{tab="sites";go()};
 $("lucky").onclick=async()=>{const q=$("q").value.trim();if(!q)return;closeSug();
   try{const d=await(await fetch(`/api/query?q=${encodeURIComponent(q)}`)).json();const u=d.results?.[0]?.url;if(/^https?:\/\//i.test(u)){location.href=u;return}}catch{}
   tab="all";go()};
@@ -93,10 +98,12 @@ function card(r){
 async function go(q){
   if(typeof q==="string")$("q").value=q;
   q=$("q").value.trim();const id=++n;
-  $("m").classList.toggle("has",!!q);
+  $("m").classList.toggle("has",!!q||tab==="sites");
   document.querySelectorAll("#tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.t===tab));
+  document.querySelector("#tabs [aria-selected=true]")?.scrollIntoView({inline:"center",block:"nearest"});
   history.replaceState(null,"",q?`?q=${encodeURIComponent(q)}&tab=${tab}`:location.pathname);
   $("ai").innerHTML=$("out").innerHTML="";
+  if(tab==="sites"){$("rel").innerHTML="";return sitesTab(id)}
   if(!q){$("meta").textContent=$("out").innerHTML=$("rel").innerHTML="";return}
   if(tab==="all")overview(q,id);
   if(tab==="ai"){$("meta").textContent="Thinking…";return aiTab(q,id)}
@@ -108,8 +115,17 @@ async function go(q){
   $("out").innerHTML=tab==="images"?`<div class="grid">${html}</div>`:html;
   $("rel").innerHTML=d.related?.length?`<h2>Related searches</h2>`+d.related.map(x=>`<button>${esc(x)}</button>`).join(""):"";
 }
+async function sitesTab(id){
+  $("meta").textContent="Checking your sites…";$("out").innerHTML="";
+  let d;try{const r=await fetch("/api/query?status=1");if(!r.ok)throw 0;d=await r.json()}catch{if(id===n)$("meta").textContent="Couldn't check your sites, try again";return}
+  if(id!==n)return;
+  const up=d.sites.filter(x=>x.up).length;
+  $("meta").textContent=`${up} of ${d.sites.length} sites online`;
+  $("out").innerHTML=d.sites.map(x=>`<div class="r row"><div><div class="site"><span class="dot ${x.up?"up":"down"}"></span>${x.up?`Online · ${x.ms} ms`:"Not responding"}</div><a class="t" href="${safe(x.url)}" target="_blank" rel="noopener">${esc(x.name)}</a><p>${esc(x.about)}</p></div></div>`).join("");
+}
 const cite=d=>esc(d.answer).replace(/\[(\d+)\]/g,(m,i)=>d.sources[i-1]?`<a href="${safe(d.sources[i-1].url)}" target="_blank" rel="noopener">[${i}]</a>`:m);
 async function aiTab(q,id){
+  $("rel").innerHTML="";
   let d;try{d=await(await fetch(`/api/query?ai=long&q=${encodeURIComponent(q)}`)).json()}catch{d={error:"network"}}
   if(id!==n)return;
   if(d.error||!d.answer){$("meta").textContent="";$("ai").innerHTML=`<div class="ai"><h2>✦ AI</h2>AI is unavailable: ${esc(d.error||"no answer")}.</div>`;return}
@@ -125,5 +141,6 @@ async function overview(q,id){
 $("rel").onclick=e=>{if(e.target.tagName==="BUTTON")go(e.target.textContent)};
 const tpl=location.origin+"/?q=%s";$("url").textContent=tpl;
 $("copy").onclick=async()=>{try{await navigator.clipboard.writeText(tpl);$("copy").textContent="Copied ✓"}catch{$("copy").textContent="Select the URL and copy it"}};
-const p=new URLSearchParams(location.search);if(TABS[p.get("tab")])tab=p.get("tab");if(p.get("q"))go(p.get("q"));
+if(window.Deluxe)Deluxe.button($("account")); // sign in with Deluxe Main
+const p=new URLSearchParams(location.search);if(TABS[p.get("tab")])tab=p.get("tab");if(p.get("q")||tab==="sites")go(p.get("q")||undefined);
 </script></body></html>
