@@ -14,8 +14,14 @@ main{max-width:760px;margin:0 auto;padding:14vh 16px 48px}main.has{padding-top:1
 h1{font-size:2.4rem;margin:0 0 22px;text-align:center;letter-spacing:-.02em}h1 span{color:var(--acc)}
 h1 img{vertical-align:-10px;border-radius:10px}main.has h1 img{width:28px;height:28px;vertical-align:-7px}
 main.has h1{font-size:1.4rem;text-align:left;margin-bottom:12px}
+.box{position:relative}.box input{padding-right:128px}
 input{width:100%;padding:14px 20px;font-size:1.05rem;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--fg);outline:0;box-shadow:0 1px 6px #0001}
 input:focus{border-color:var(--acc)}
+.aib{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:var(--acc);color:#fff;border:0;border-radius:999px;padding:8px 14px;font:inherit;font-size:.85rem;cursor:pointer}
+#sug{position:absolute;left:0;right:0;top:calc(100% + 6px);background:var(--bg);border:1px solid var(--line);border-radius:18px;box-shadow:0 8px 24px #0002;list-style:none;margin:0;padding:6px;z-index:10;max-height:60vh;overflow:auto}
+#sug[hidden]{display:none}#sug li{padding:10px 14px;border-radius:10px;cursor:pointer}#sug li.on,#sug li:hover{background:var(--card)}
+.btns{display:flex;gap:10px;justify-content:center;margin-top:22px}main.has .btns{display:none}
+.btns button{background:var(--card);border:1px solid var(--line);color:var(--fg);padding:10px 18px;border-radius:8px;font:inherit;font-size:.9rem;cursor:pointer}
 nav{display:none;gap:4px;margin:12px 0 0;border-bottom:1px solid var(--line);overflow-x:auto}main.has nav{display:flex}
 nav button{background:none;border:0;border-bottom:3px solid transparent;padding:10px 14px;font:inherit;color:var(--mute);cursor:pointer;white-space:nowrap}
 nav button[aria-selected=true]{color:var(--acc);border-color:var(--acc);font-weight:600}
@@ -39,7 +45,8 @@ nav button[aria-selected=true]{color:var(--acc);border-color:var(--acc);font-wei
 .chips button{background:var(--card);border:1px solid var(--line);color:var(--fg);padding:8px 14px;border-radius:999px;font:inherit;font-size:.9rem;cursor:pointer}
 </style></head><body><main id="m">
 <h1><img src="/icon.svg" alt="" width="40" height="40"> Deluxe <span>Search</span></h1>
-<input id="q" type="search" placeholder="Search the web…" autofocus autocomplete="off" aria-label="Search">
+<div class="box"><input id="q" type="text" placeholder="Search the web…" autofocus autocomplete="off" aria-label="Search" aria-autocomplete="list" enterkeyhint="search"><button id="aibtn" class="aib" type="button">AI Mode →</button><ul id="sug" role="listbox" hidden></ul></div>
+<div class="btns" id="btns"><button id="srch" type="button">Deluxe Search</button><button id="lucky" type="button">I'm Feeling Lucky</button></div>
 <nav id="tabs" role="tablist"></nav>
 <div class="meta" id="meta" aria-live="polite"></div><div id="ai"></div><div id="out"></div><div class="chips" id="rel"></div><details class="def" id="def"><summary>Make Deluxe Search your default search engine</summary>
 <p>Your search URL: <code id="url"></code></p><button id="copy" type="button">Copy search URL</button>
@@ -55,8 +62,26 @@ const TABS={ai:"✦ AI",all:"All",images:"Images",videos:"Videos",news:"News"};
 let tab="all",t,n=0;
 $("tabs").innerHTML=Object.entries(TABS).map(([k,v])=>`<button role="tab" data-t="${k}">${v}</button>`).join("");
 $("tabs").onclick=e=>{const k=e.target.dataset.t;if(k){tab=k;go()}};
-$("q").addEventListener("input",()=>{clearTimeout(t);t=setTimeout(go,300)});
-$("q").addEventListener("keydown",e=>{if(e.key==="Enter"){clearTimeout(t);go()}});
+let sugT,sugN=0,sel=-1,items=[];
+const closeSug=()=>{sugN++;$("sug").hidden=true;sel=-1;items=[]};
+$("q").addEventListener("input",()=>{clearTimeout(sugT);const v=$("q").value.trim();if(!v)return closeSug();sugT=setTimeout(()=>suggest(v),150)});
+async function suggest(v){const id=++sugN;
+  try{const d=await(await fetch(`/api/query?suggest=1&q=${encodeURIComponent(v)}`)).json();
+    if(id!==sugN||!d.suggestions?.length)return;
+    items=d.suggestions;sel=-1;$("sug").innerHTML=items.map((x,i)=>`<li role="option" data-i="${i}">🔍 ${esc(x)}</li>`).join("");$("sug").hidden=false}catch{}}
+$("sug").addEventListener("mousedown",e=>{const li=e.target.closest("li");if(li){e.preventDefault();closeSug();go(items[li.dataset.i]??li.textContent.slice(3))}});
+$("q").addEventListener("blur",()=>setTimeout(closeSug,150));
+$("q").addEventListener("keydown",e=>{
+  if(e.key==="Enter"){clearTimeout(sugT);closeSug();go()}
+  else if(e.key==="Escape")closeSug();
+  else if((e.key==="ArrowDown"||e.key==="ArrowUp")&&items.length){e.preventDefault();
+    sel=(sel+(e.key==="ArrowDown"?1:-1)+items.length+1)%(items.length+1);if(sel===items.length)sel=-1;
+    [...$("sug").children].forEach((li,i)=>li.classList.toggle("on",i===sel));if(sel>=0)$("q").value=items[sel]}});
+$("aibtn").onclick=()=>{tab="ai";closeSug();go()};
+$("srch").onclick=()=>go();
+$("lucky").onclick=async()=>{const q=$("q").value.trim();if(!q)return;closeSug();
+  try{const d=await(await fetch(`/api/query?q=${encodeURIComponent(q)}`)).json();const u=d.results?.[0]?.url;if(/^https?:\/\//i.test(u)){location.href=u;return}}catch{}
+  tab="all";go()};
 const fav=s=>`<img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(s)}&sz=64" alt="" loading="lazy">`,
 thumb=u=>/^https?:\/\//i.test(u)?`<img class="thumb" src="${esc(u)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:"";
 function card(r){

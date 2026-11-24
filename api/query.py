@@ -69,12 +69,24 @@ def ask(q, results, long=False):
               {"Authorization": "Bearer " + key, "Content-Type": "application/json"}, json.dumps(body).encode())
     return d["choices"][0]["message"]["content"].strip()
 
+def suggest(q):
+    """Type-ahead suggestions: free keyless endpoints (unofficial), Google then DuckDuckGo."""
+    for url in ("https://suggestqueries.google.com/complete/search?client=firefox&q=" + quote(q),
+                "https://duckduckgo.com/ac/?type=list&q=" + quote(q)):
+        try:
+            return [x for x in fetch(url)[1] if isinstance(x, str)][:8]
+        except Exception:
+            continue
+    return []
+
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
         qs = parse_qs(urlparse(self.path).query)
         q = qs.get("q", [""])[0].strip()[:200]
         tab = qs.get("tab", ["all"])[0]
         try:
+            if qs.get("suggest"):
+                return self.reply({"suggestions": suggest(q) if q else []}, 200, "public, s-maxage=3600")
             if qs.get("ai") and q:  # separate call so the page shows results first
                 _, res, _ = search(q)
                 res = res[:6]
@@ -88,9 +100,11 @@ class handler(BaseHTTPRequestHandler):
             body, code = {"error": type(e).__name__}, 502
         self.reply(body, code)
 
-    def reply(self, body, code):
+    def reply(self, body, code, cache=None):
         self.send_response(code)
         self.send_header("Content-Type", "application/json")
+        if cache:
+            self.send_header("Cache-Control", cache)
         self.end_headers()
         self.wfile.write(json.dumps(body).encode())
 
@@ -114,4 +128,9 @@ if __name__ == "__main__":
     assert ask("cat", o) == ""
     os.environ["GROQ_API_KEY"] = "k"
     assert ask("cat", o) == "Cats purr [1]." and ask("cat", []) == ""
+    fetch = lambda url, h=None, b=None: ["cat", ["cat", "cat exam", 5]]
+    assert suggest("cat") == ["cat", "cat exam"]
+    def boom(url, h=None, b=None): raise OSError
+    fetch = boom
+    assert suggest("cat") == []
     print("ok")
