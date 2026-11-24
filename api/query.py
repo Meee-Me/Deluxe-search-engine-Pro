@@ -1,7 +1,9 @@
 """Web search. Serper if SERPER_API_KEY, else Brave if BRAVE_API_KEY, else Wikipedia (keyless)."""
-import html, json, os, re
+import html, json, os, re, time
+from concurrent.futures import ThreadPoolExecutor
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import parse_qs, quote, urlencode, urlparse
+from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 def clean(s):
@@ -79,12 +81,35 @@ def suggest(q):
             continue
     return []
 
+MAIN = os.environ.get("DELUXE_MAIN", "https://deluxe-main.vercel.app")
+
+def probe(site):
+    """Up = any HTTP answer below 500 (a 401 from a sign-in page still means the site is online)."""
+    t, code = time.time(), 0
+    try:
+        with urlopen(Request(site["url"], headers={"User-Agent": "DeluxeSearch/1.0"}), timeout=6) as r:
+            code = r.status
+    except HTTPError as e:
+        code = e.code
+    except Exception:
+        pass
+    return {**site, "up": 0 < code < 500, "code": code, "ms": round((time.time() - t) * 1000)}
+
+def check_sites(apps, probe=probe):
+    # URLs come only from Deluxe Main's own list; https only
+    sites = [{"name": "Deluxe Main", "about": "Your Deluxe account", "url": MAIN}] + [
+        {"name": a["name"], "about": a.get("about", ""), "url": a["url"]} for a in apps if str(a.get("url", "")).startswith("https://")]
+    with ThreadPoolExecutor(max_workers=10) as ex:
+        return list(ex.map(probe, sites))
+
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
         qs = parse_qs(urlparse(self.path).query)
         q = qs.get("q", [""])[0].strip()[:200]
         tab = qs.get("tab", ["all"])[0]
         try:
+            if qs.get("status"):
+                return self.reply({"sites": check_sites(fetch(MAIN + "/api/apps").get("apps", []))}, 200, "public, s-maxage=30")
             if qs.get("suggest"):
                 return self.reply({"suggestions": suggest(q) if q else []}, 200, "public, s-maxage=3600")
             if qs.get("ai") and q:  # separate call so the page shows results first
@@ -133,4 +158,9 @@ if __name__ == "__main__":
     def boom(url, h=None, b=None): raise OSError
     fetch = boom
     assert suggest("cat") == []
+    fake = lambda x: {**x, "up": x["name"] != "Bad", "code": 200, "ms": 1}
+    got = check_sites([{"name": "A", "url": "https://a.b"}, {"name": "Bad", "url": "https://c.d"},
+                       {"name": "Evil", "url": "http://169.254.169.254/"}, {"name": "NoUrl"}], fake)
+    assert [g["name"] for g in got] == ["Deluxe Main", "A", "Bad"] and [g["up"] for g in got] == [True, True, False]
+    assert probe({"name": "x", "url": "https://localhost:1"})["up"] is False
     print("ok")
