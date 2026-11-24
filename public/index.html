@@ -5,59 +5,67 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="search" type="application/opensearchdescription+xml" title="Deluxe Search" href="/opensearch.xml">
-<meta name="theme-color" content="#4f46e5">
-<style>.acct{position:fixed;top:10px;right:12px;z-index:20}</style>
+<meta name="theme-color" content="#5b3fd1">
 <style>
-:root{--bg:#fff;--fg:#1f2430;--mute:#6b7280;--card:#f3f4f9;--acc:#4f46e5;--link:#1a56db;--line:#e5e7eb;color-scheme:light dark}
-@media(prefers-color-scheme:dark){:root{--bg:#0f1020;--fg:#eceaff;--mute:#9aa0b4;--card:#1a1b30;--acc:#8b8bff;--link:#8ab4ff;--line:#2a2c46}}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,sans-serif}
-main{max-width:760px;margin:0 auto;padding:14vh 16px 48px}main.has{padding-top:16px}
-h1{font-size:2.4rem;margin:0 0 22px;text-align:center;letter-spacing:-.02em}h1 span{color:var(--acc)}
-h1 img{vertical-align:-10px;border-radius:10px}main.has h1 img{width:28px;height:28px;vertical-align:-7px}
-main.has h1{font-size:1.4rem;text-align:left;margin-bottom:12px}
-.box{position:relative}.box input{padding-right:128px}
-input{width:100%;padding:14px 20px;font-size:1.05rem;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--fg);outline:0;box-shadow:0 1px 6px #0001}
-input:focus{border-color:var(--acc)}
-.aib{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:var(--acc);color:#fff;border:0;border-radius:999px;padding:8px 14px;font:inherit;font-size:.85rem;cursor:pointer}
-#sug{position:absolute;left:0;right:0;top:calc(100% + 6px);background:var(--bg);border:1px solid var(--line);border-radius:18px;box-shadow:0 8px 24px #0002;list-style:none;margin:0;padding:6px;z-index:10;max-height:60vh;overflow:auto}
-#sug[hidden]{display:none}#sug li{padding:10px 14px;border-radius:10px;cursor:pointer}#sug li.on,#sug li:hover{background:var(--card)}
-.btns{display:flex;gap:10px;justify-content:center;margin-top:22px}main.has .btns{display:none}
-.btns button{background:var(--card);border:1px solid var(--line);color:var(--fg);padding:10px 18px;border-radius:8px;font:inherit;font-size:.9rem;cursor:pointer}
-nav{display:none;gap:4px;margin:12px 0 0;border-bottom:1px solid var(--line);overflow-x:auto}main.has nav{display:flex}
-nav button{background:none;border:0;border-bottom:3px solid transparent;padding:10px 14px;font:inherit;color:var(--mute);cursor:pointer;white-space:nowrap}
-nav button[aria-selected=true]{color:var(--acc);border-color:var(--acc);font-weight:600}
-.meta{color:var(--mute);font-size:.82rem;margin:14px 2px}
-.r{margin:0 0 26px}.r.row{display:flex;gap:14px;justify-content:space-between}.r.row>div{min-width:0}
-.site{display:flex;align-items:center;gap:10px;color:var(--mute);font-size:.82rem;margin-bottom:2px;min-width:0}
-.site img{width:26px;height:26px;border-radius:50%;background:var(--card);padding:3px;flex:none}
-.site b{color:var(--fg);font-weight:500;display:block}.site i{font-style:normal;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+:root{--bg:#fbfaf7;--fg:#1c1b19;--mute:#6a665e;--card:#f2efe9;--acc:#5b3fd1;--link:#1a4db3;--line:#e2ded5;color-scheme:light dark}
+@media(prefers-color-scheme:dark){:root{--bg:#141311;--fg:#ece9e2;--mute:#a09b90;--card:#1f1d1a;--acc:#a99aff;--link:#8fb4ff;--line:#33302b}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:860px;margin:0 auto;padding:16vh 20px 56px}main.has{padding-top:18px}
+.top{display:flex;flex-direction:column;align-items:center;gap:22px}
+h1{margin:0;font:700 2.6rem/1 "Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;letter-spacing:-.015em;display:flex;align-items:center;gap:12px;white-space:nowrap}
+h1 em{font-weight:400;color:var(--acc)}h1 img{width:44px;height:44px;border-radius:11px}
+.box{position:relative;width:100%}
+main.has .top{flex-direction:row;gap:28px;align-items:center}main.has h1{font-size:1.5rem}main.has h1 img{width:30px;height:30px;border-radius:8px}main.has .box{flex:1;min-width:0}
+@media(max-width:640px){main.has .top{flex-direction:column;align-items:stretch;gap:12px}}
+input{width:100%;padding:13px 22px;font:inherit;font-size:1.02rem;border:1px solid var(--line);border-radius:999px;background:var(--bg);color:var(--fg);outline:0}
+.box input{padding-right:124px}input:hover{border-color:var(--mute)}input:focus{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc)}
+.aib{position:absolute;right:7px;top:50%;transform:translateY(-50%);background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font:inherit;font-size:.84rem;cursor:pointer}.aib:hover{border-color:var(--acc);color:var(--acc)}
+#sug{position:absolute;left:0;right:0;top:calc(100% + 6px);background:var(--bg);border:1px solid var(--line);border-radius:14px;list-style:none;margin:0;padding:6px;z-index:10;max-height:60vh;overflow:auto;box-shadow:0 6px 20px #0000001a}
+#sug[hidden]{display:none}#sug li{padding:9px 12px;border-radius:8px;cursor:pointer;display:flex;gap:12px;align-items:center}#sug li.on,#sug li:hover{background:var(--card)}
+#sug svg{width:15px;height:15px;flex:none;color:var(--mute)}
+.btns{display:flex;gap:10px;justify-content:center;margin-top:26px}main.has .btns{display:none}
+.btns button{background:var(--card);border:1px solid transparent;color:var(--fg);padding:9px 18px;border-radius:8px;font:inherit;font-size:.9rem;cursor:pointer}.btns button:hover{border-color:var(--line)}
+nav#tabs{display:none;gap:2px;margin:14px 0 0;border-bottom:1px solid var(--line);overflow-x:auto}main.has nav#tabs{display:flex}
+nav#tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:9px 14px;font:inherit;font-size:.93rem;color:var(--mute);cursor:pointer;white-space:nowrap;margin-bottom:-1px}
+nav#tabs button:hover{color:var(--fg)}nav#tabs button[aria-selected=true]{color:var(--fg);border-color:var(--fg);font-weight:600}
+.meta{color:var(--mute);font-size:.8rem;margin:14px 0}
+#out,#ai,#pager,#rel,.chatform{max-width:700px}#out:has(.grid){max-width:none}
+.r{margin:0 0 28px}.r.row{display:flex;gap:16px;justify-content:space-between}.r.row>div{min-width:0}
+.site{display:flex;align-items:center;gap:10px;color:var(--mute);font-size:.8rem;margin-bottom:3px;min-width:0}
+.site img{width:24px;height:24px;border-radius:50%;background:var(--card);padding:3px;flex:none;border:1px solid var(--line)}
+.site b{color:var(--fg);font-weight:500;display:block;line-height:1.2}.site i{font-style:normal;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.2}
 .site div{min-width:0}
-.t{color:var(--link);font-size:1.15rem;line-height:1.3;text-decoration:none;display:block;margin:2px 0 4px}.t:hover{text-decoration:underline}
+.t{color:var(--link);font-size:1.12rem;line-height:1.3;text-decoration:none;display:block;margin:2px 0 4px;font-weight:500}.t:hover{text-decoration:underline}
 .r p{margin:0;color:var(--mute);font-size:.92rem;overflow-wrap:anywhere}
-.thumb{width:104px;height:104px;object-fit:cover;border-radius:12px;flex:none;background:var(--card)}
-.r.row.vid .thumb{width:150px;height:90px}
-.grid{columns:2;column-gap:10px}.grid a{display:block;break-inside:avoid;margin-bottom:14px;text-decoration:none;color:var(--fg);font-size:.82rem}
-.grid img{width:100%;border-radius:12px;display:block;background:var(--card)}.grid small{color:var(--mute);display:block}
-@media(min-width:640px){.grid{columns:3}}
-.ai{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 18px;margin:0 0 24px;font-size:.95rem}.ai h2{font-size:.8rem;margin:0 0 6px;color:var(--acc);letter-spacing:.04em;text-transform:uppercase}.ai small{display:block;color:var(--mute);margin-top:8px;font-size:.75rem}.ai a{color:var(--link);text-decoration:none;font-weight:600}
-.def{margin-top:40px;font-size:.88rem;color:var(--mute)}.def summary{cursor:pointer;color:var(--acc);font-weight:600}
-.def ul{padding-left:18px}.def code{background:var(--card);padding:2px 6px;border-radius:6px;word-break:break-all}.def button{margin-top:6px;background:var(--acc);color:#fff;border:0;border-radius:999px;padding:8px 16px;font:inherit;cursor:pointer}
-.dot{width:10px;height:10px;border-radius:50%;flex:none}.dot.up{background:#22c55e}.dot.down{background:#ef4444}
-.msg{border-radius:16px;padding:12px 16px;margin:0 0 12px;font-size:.95rem;max-width:92%;overflow-wrap:anywhere}
-.msg.me{background:var(--acc);color:#fff;margin-left:auto;border-bottom-right-radius:4px}
-.msg.bot{background:var(--card);border:1px solid var(--line);border-bottom-left-radius:4px}.msg h2{font-size:.8rem;margin:0 0 6px;color:var(--acc);letter-spacing:.04em;text-transform:uppercase}
-.msg a{color:var(--link);text-decoration:none;font-weight:600}.src{display:flex;flex-direction:column;gap:2px;margin-top:10px;font-size:.78rem}.src a{font-weight:400;color:var(--mute)}
-.chatform{display:flex;gap:8px;margin:6px 0 20px;position:sticky;bottom:8px}.chatform[hidden]{display:none}.chatform input{padding:12px 18px;flex:1;min-width:0}
-.chatform button{background:var(--acc);color:#fff;border:0;border-radius:999px;padding:0 16px;font:inherit;cursor:pointer}.chatform button[type=button]{background:var(--card);color:var(--fg);border:1px solid var(--line)}
-.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.chips h2{width:100%;font-size:1rem;margin:0}
-.chips button{background:var(--card);border:1px solid var(--line);color:var(--fg);padding:8px 14px;border-radius:999px;font:inherit;font-size:.9rem;cursor:pointer}
+.thumb{width:104px;height:104px;object-fit:cover;border-radius:8px;flex:none;background:var(--card)}.r.row.vid .thumb{width:152px;height:92px}
+.grid{columns:2;column-gap:12px}.grid a{display:block;break-inside:avoid;margin-bottom:16px;text-decoration:none;color:var(--fg);font-size:.82rem}
+.grid img{width:100%;border-radius:6px;display:block;background:var(--card)}.grid small{color:var(--mute);display:block}
+@media(min-width:700px){.grid{columns:3}}
+.ai{border-left:3px solid var(--acc);padding:2px 0 2px 16px;margin:0 0 28px;font-size:.96rem}
+.ai h2,.msg h2{font:600 .72rem/1 ui-sans-serif,system-ui,sans-serif;margin:0 0 8px;color:var(--acc);letter-spacing:.09em;text-transform:uppercase}
+.ai small{display:block;color:var(--mute);margin-top:8px;font-size:.74rem}.ai a,.msg a{color:var(--link);text-decoration:none;font-weight:600}
+.def{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);font-size:.86rem;color:var(--mute);max-width:700px}.def summary{cursor:pointer;color:var(--mute)}.def summary:hover{color:var(--fg)}
+.def ul{padding-left:18px}.def code{background:var(--card);padding:2px 6px;border-radius:5px;word-break:break-all}.def button{margin-top:6px;background:var(--fg);color:var(--bg);border:0;border-radius:8px;padding:8px 14px;font:inherit;cursor:pointer}
+.dot{width:9px;height:9px;border-radius:50%;flex:none}.dot.up{background:#2f9e5b}.dot.down{background:#d64545}
+.msg{margin:0 0 18px;font-size:.96rem;overflow-wrap:anywhere}
+.msg.me{background:var(--card);margin-left:auto;width:fit-content;max-width:88%;padding:9px 14px;border-radius:12px 12px 2px 12px}
+.msg.bot{border-left:3px solid var(--acc);padding:2px 0 2px 16px}
+.src{display:flex;flex-direction:column;gap:2px;margin-top:10px;font-size:.78rem}.src a{font-weight:400;color:var(--mute)}.src a:hover{color:var(--link)}
+.chatform{display:flex;gap:8px;margin:6px 0 20px;position:sticky;bottom:10px;background:var(--bg);padding:6px 0}.chatform[hidden]{display:none}.chatform input{flex:1;min-width:0}
+.chatform button{background:var(--fg);color:var(--bg);border:0;border-radius:999px;padding:0 18px;font:inherit;cursor:pointer}.chatform button[type=button]{background:none;color:var(--mute);border:1px solid var(--line)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.chips h2{width:100%;font-size:.95rem;margin:0 0 2px;font-weight:600}
+.chips button{background:var(--card);border:1px solid transparent;color:var(--fg);padding:7px 13px;border-radius:8px;font:inherit;font-size:.88rem;cursor:pointer}.chips button:hover{border-color:var(--line)}
+.pager{display:flex;gap:4px;align-items:center;margin:8px 0 28px;flex-wrap:wrap}
+.pager button{min-width:38px;height:38px;border:0;background:none;border-radius:8px;font:inherit;color:var(--link);cursor:pointer;padding:0 10px}
+.pager button:hover:not(:disabled){background:var(--card)}.pager button[aria-current=page]{background:var(--fg);color:var(--bg);cursor:default}.pager button:disabled{color:var(--mute);opacity:.5;cursor:default}
+.acct{position:fixed;top:10px;right:12px;z-index:20}
 </style></head><body><div id="account" class="acct"></div>
 <main id="m">
-<h1><img src="/icon.svg" alt="" width="40" height="40"> Deluxe <span>Search</span></h1>
-<div class="box"><input id="q" type="text" placeholder="Search the web…" autofocus autocomplete="off" aria-label="Search" aria-autocomplete="list" enterkeyhint="search"><button id="aibtn" class="aib" type="button">AI Mode →</button><ul id="sug" role="listbox" hidden></ul></div>
-<div class="btns" id="btns"><button id="srch" type="button">Deluxe Search</button><button id="lucky" type="button">I'm Feeling Lucky</button><button id="mysites" type="button">My sites</button></div>
+<header class="top"><h1><img src="/icon.svg" alt="" width="44" height="44"><span>Deluxe <em>Search</em></span></h1>
+<div class="box"><input id="q" type="text" placeholder="Search the web…" autofocus autocomplete="off" aria-label="Search" aria-autocomplete="list" enterkeyhint="search"><button id="aibtn" class="aib" type="button">AI Mode →</button><ul id="sug" role="listbox" hidden></ul></div></header>
+<div class="btns" id="btns"><button id="srch" type="button">Search</button><button id="lucky" type="button">I'm Feeling Lucky</button><button id="mysites" type="button">My sites</button></div>
 <nav id="tabs" role="tablist"></nav>
-<div class="meta" id="meta" aria-live="polite"></div><div id="ai"></div><form id="cf" class="chatform" hidden><input id="cq" placeholder="Ask a follow-up…" autocomplete="off" aria-label="Follow-up question"><button>Send</button><button type="button" id="newchat">New chat</button></form><div id="out"></div><div class="chips" id="rel"></div><details class="def" id="def"><summary>Make Deluxe Search your default search engine</summary>
+<div class="meta" id="meta" aria-live="polite"></div><div id="ai"></div><form id="cf" class="chatform" hidden><input id="cq" placeholder="Ask a follow-up…" autocomplete="off" aria-label="Follow-up question"><button>Send</button><button type="button" id="newchat">New chat</button></form><div id="out"></div><div class="pager" id="pager"></div><div class="chips" id="rel"></div><details class="def" id="def"><summary>Make Deluxe Search your default search engine</summary>
 <p>Your search URL: <code id="url"></code></p><button id="copy" type="button">Copy search URL</button>
 <ul><li><b>Chrome (computer):</b> Settings → Search engine → Manage search engines → Add. Name it Deluxe Search, paste the URL above (the <code>%s</code> is where your search words go), then choose Make default.</li>
 <li><b>Chrome (Android):</b> visit this site and search once, then Settings → Search engine → pick Deluxe Search.</li>
@@ -68,8 +76,9 @@ nav button[aria-selected=true]{color:var(--acc);border-color:var(--acc);font-wei
 const $=id=>document.getElementById(id),
 esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])),
 safe=u=>/^https?:\/\//i.test(u)?esc(u):"#"; // blocks javascript: links from API data
-const TABS={ai:"✦ AI",all:"All",images:"Images",videos:"Videos",news:"News",sites:"My sites"};
-let tab="all",t,n=0;
+const TABS={ai:"AI",all:"All",images:"Images",videos:"Videos",news:"News",sites:"My sites"};
+let tab="all",t,n=0,page=1;
+const MAG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/></svg>';
 $("tabs").innerHTML=Object.entries(TABS).map(([k,v])=>`<button role="tab" data-t="${k}">${v}</button>`).join("");
 $("tabs").onclick=e=>{const k=e.target.dataset.t;if(k){tab=k;go()}};
 let sugT,sugN=0,sel=-1,items=[];
@@ -78,8 +87,8 @@ $("q").addEventListener("input",()=>{clearTimeout(sugT);const v=$("q").value.tri
 async function suggest(v){const id=++sugN;
   try{const d=await(await fetch(`/api/query?suggest=1&q=${encodeURIComponent(v)}`)).json();
     if(id!==sugN||!d.suggestions?.length)return;
-    items=d.suggestions;sel=-1;$("sug").innerHTML=items.map((x,i)=>`<li role="option" data-i="${i}">🔍 ${esc(x)}</li>`).join("");$("sug").hidden=false}catch{}}
-$("sug").addEventListener("mousedown",e=>{const li=e.target.closest("li");if(li){e.preventDefault();closeSug();go(items[li.dataset.i]??li.textContent.slice(3))}});
+    items=d.suggestions;sel=-1;$("sug").innerHTML=items.map((x,i)=>`<li role="option" data-i="${i}">${MAG}<span>${esc(x)}</span></li>`).join("");$("sug").hidden=false}catch{}}
+$("sug").addEventListener("mousedown",e=>{const li=e.target.closest("li");if(li){e.preventDefault();closeSug();go(items[li.dataset.i]??li.textContent.trim())}});
 $("q").addEventListener("blur",()=>setTimeout(closeSug,150));
 $("q").addEventListener("keydown",e=>{
   if(e.key==="Enter"){clearTimeout(sugT);closeSug();go()}
@@ -101,26 +110,35 @@ function card(r){
   if(tab==="all")return `<div class="r"><div class="site">${fav(r.site)}<div><b>${esc(r.site)}</b><i>${esc(r.url)}</i></div></div><a class="t" href="${safe(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a><p>${sn}</p></div>`;
   return `<div class="r row ${tab==="videos"?"vid":""}"><div><div class="site">${esc(r.meta)}</div><a class="t" href="${safe(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a><p>${sn}</p></div>${thumb(r.img)}</div>`;
 }
-async function go(q){
+async function go(q,pg){
   if(typeof q==="string")$("q").value=q;
+  page=pg||1;$("pager").innerHTML="";
   q=$("q").value.trim();const id=++n;
   $("m").classList.toggle("has",!!q||tab==="sites");
   document.querySelectorAll("#tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.t===tab));
   document.querySelector("#tabs [aria-selected=true]")?.scrollIntoView({inline:"center",block:"nearest"});
-  history.replaceState(null,"",q?`?q=${encodeURIComponent(q)}&tab=${tab}`:location.pathname);
+  history.replaceState(null,"",q?`?q=${encodeURIComponent(q)}&tab=${tab}${page>1?"&page="+page:""}`:location.pathname);
   $("ai").innerHTML=$("out").innerHTML="";$("cf").hidden=true;
   if(tab==="sites"){$("rel").innerHTML="";return sitesTab(id)}
   if(!q){$("meta").textContent=$("out").innerHTML=$("rel").innerHTML="";return}
   if(tab==="all")overview(q,id);
   if(tab==="ai")return aiTab(q)
-  let d;try{const r=await fetch(`/api/query?q=${encodeURIComponent(q)}&tab=${tab}`);if(!r.ok)throw 0;d=await r.json()}
+  let d;try{const r=await fetch(`/api/query?q=${encodeURIComponent(q)}&tab=${tab}&page=${page}`);if(!r.ok)throw 0;d=await r.json()}
   catch{if(id===n)$("meta").textContent="Search failed, try again";return}
   if(id!==n)return; // stale response
-    $("meta").textContent=d.results.length?`${d.results.length} results · via ${d.source}`:(tab!=="all"&&!d.source?`${TABS[tab]} needs a Serper key`:"No results");
+    $("meta").textContent=d.results.length?`Page ${page} · ${d.results.length} results · via ${d.source}`:(tab!=="all"&&!d.source?`${TABS[tab]} needs a Serper key`:"No results");
   const html=d.results.map(r=>card(r)).join("");
   $("out").innerHTML=tab==="images"?`<div class="grid">${html}</div>`:html;
+  renderPager(d.results.length);
   $("rel").innerHTML=d.related?.length?`<h2>Related searches</h2>`+d.related.map(x=>`<button>${esc(x)}</button>`).join(""):"";
 }
+function renderPager(count){
+  if(!count&&page===1){$("pager").innerHTML="";return}
+  const lo=Math.max(1,Math.min(page-2,6)),hi=Math.min(10,lo+4);let h=`<button data-p="${page-1}" ${page<2?"disabled":""}>‹ Previous</button>`;
+  for(let i=lo;i<=hi;i++)h+=`<button data-p="${i}" ${i===page?'aria-current="page"':""}>${i}</button>`;
+  $("pager").innerHTML=h+`<button data-p="${page+1}" ${page>=10||!count?"disabled":""}>Next ›</button>`;
+}
+$("pager").onclick=e=>{const p=+e.target.dataset.p;if(p>0&&p<=10&&p!==page){go(undefined,p);scrollTo({top:0})}};
 async function sitesTab(id){
   $("meta").textContent="Checking your sites…";$("out").innerHTML="";
   let d;try{const r=await fetch("/api/query?status=1");if(!r.ok)throw 0;d=await r.json()}catch{if(id===n)$("meta").textContent="Couldn't check your sites, try again";return}
@@ -134,7 +152,7 @@ const cite=d=>esc(d.answer).replace(/【(\d+)[^】]*】/g,"[$1]").replace(/\[(\d
 let thread=[],busy=false,chatId=0;
 function renderChat(){
   $("ai").innerHTML=thread.map(m=>m.role==="user"?`<div class="msg me">${esc(m.text)}</div>`
-    :`<div class="msg bot"><h2>✦ AI</h2>${m.err?`AI is unavailable: ${esc(m.err)}.`:cite({answer:m.text,sources:m.sources}).replace(/\n+/g,"<br><br>")}${
+    :`<div class="msg bot"><h2>AI</h2>${m.err?`AI is unavailable: ${esc(m.err)}.`:cite({answer:m.text,sources:m.sources}).replace(/\n+/g,"<br><br>")}${
       m.sources?.length?`<div class="src">${m.sources.map((r,i)=>`<a href="${safe(r.url)}" target="_blank" rel="noopener">[${i+1}] ${esc(r.title)}</a>`).join("")}</div>`:""}</div>`).join("")
     +(busy?'<div class="msg bot">Thinking…</div>':"");
   $("cf").hidden=!thread.length;$("cq").disabled=busy;
@@ -157,11 +175,11 @@ $("newchat").onclick=()=>{chatId++;busy=false;thread=[];$("ai").innerHTML="";$("
 async function overview(q,id){
   try{const d=await(await fetch(`/api/query?ai=1&q=${encodeURIComponent(q)}`)).json();
     if(id!==n||!d.answer)return;
-    $("ai").innerHTML=`<div class="ai"><h2>✦ AI overview</h2>${cite(d)}<small>AI-generated from the results below. May be wrong.</small></div>`}catch{}
+    $("ai").innerHTML=`<div class="ai"><h2>AI overview</h2>${cite(d)}<small>AI-generated from the results below. May be wrong.</small></div>`}catch{}
 }
 $("rel").onclick=e=>{if(e.target.tagName==="BUTTON")go(e.target.textContent)};
 const tpl=location.origin+"/?q=%s";$("url").textContent=tpl;
 $("copy").onclick=async()=>{try{await navigator.clipboard.writeText(tpl);$("copy").textContent="Copied ✓"}catch{$("copy").textContent="Select the URL and copy it"}};
 if(window.Deluxe)Deluxe.button($("account")); // sign in with Deluxe Main
-const p=new URLSearchParams(location.search);if(TABS[p.get("tab")])tab=p.get("tab");if(p.get("q")||tab==="sites")go(p.get("q")||undefined);
+const p=new URLSearchParams(location.search);if(TABS[p.get("tab")])tab=p.get("tab");if(p.get("q")||tab==="sites")go(p.get("q")||undefined,Math.min(10,Math.max(1,+p.get("page")||1)));
 </script></body></html>
