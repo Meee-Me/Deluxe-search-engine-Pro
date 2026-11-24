@@ -1,4 +1,4 @@
-"""Web search. Brave Search if BRAVE_API_KEY is set (full web), else Wikipedia (keyless)."""
+"""Web search. Serper if SERPER_API_KEY, else Brave if BRAVE_API_KEY, else Wikipedia (keyless)."""
 import html, json, os, re
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import parse_qs, quote, urlencode, urlparse
@@ -7,8 +7,8 @@ from urllib.request import Request, urlopen
 def clean(s):
     return html.unescape(re.sub(r"<[^>]+>", "", s or ""))
 
-def fetch(url, headers=None):
-    req = Request(url, headers={"User-Agent": "DeluxeSearch/1.0", **(headers or {})})
+def fetch(url, headers=None, body=None):
+    req = Request(url, data=body, headers={"User-Agent": "DeluxeSearch/1.0", **(headers or {})})
     with urlopen(req, timeout=8) as r:
         return json.load(r)
 
@@ -16,11 +16,18 @@ def parse_brave(d):
     return [{"title": clean(r["title"]), "url": r["url"], "snippet": clean(r.get("description"))}
             for r in d.get("web", {}).get("results", [])]
 
+def parse_serper(d):
+    return [{"title": r["title"], "url": r["link"], "snippet": r.get("snippet", "")} for r in d.get("organic", [])]
+
 def parse_wiki(d):
     return [{"title": r["title"], "url": "https://en.wikipedia.org/wiki/" + quote(r["title"].replace(" ", "_")),
              "snippet": clean(r["snippet"])} for r in d.get("query", {}).get("search", [])]
 
 def search(q):
+    skey = os.environ.get("SERPER_API_KEY")
+    if skey:
+        return "Serper", parse_serper(fetch("https://google.serper.dev/search",
+            {"X-API-KEY": skey, "Content-Type": "application/json"}, json.dumps({"q": q, "num": 10}).encode()))
     key = os.environ.get("BRAVE_API_KEY")
     if key:
         return "Brave", parse_brave(fetch("https://api.search.brave.com/res/v1/web/search?" + urlencode({"q": q, "count": 10}),
@@ -47,4 +54,6 @@ if __name__ == "__main__":
     b = parse_brave({"web": {"results": [{"title": "<b>Cat</b>", "url": "https://x.y", "description": "d <strong>c</strong>"}]}})
     assert b == [{"title": "Cat", "url": "https://x.y", "snippet": "d c"}]
     assert parse_brave({}) == []
+    assert parse_serper({"organic": [{"title": "T", "link": "https://a.b", "snippet": "s"}]}) == [{"title": "T", "url": "https://a.b", "snippet": "s"}]
+    assert parse_serper({}) == []
     print("ok")
