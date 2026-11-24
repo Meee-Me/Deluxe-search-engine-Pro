@@ -43,6 +43,12 @@ nav button[aria-selected=true]{color:var(--acc);border-color:var(--acc);font-wei
 .def{margin-top:40px;font-size:.88rem;color:var(--mute)}.def summary{cursor:pointer;color:var(--acc);font-weight:600}
 .def ul{padding-left:18px}.def code{background:var(--card);padding:2px 6px;border-radius:6px;word-break:break-all}.def button{margin-top:6px;background:var(--acc);color:#fff;border:0;border-radius:999px;padding:8px 16px;font:inherit;cursor:pointer}
 .dot{width:10px;height:10px;border-radius:50%;flex:none}.dot.up{background:#22c55e}.dot.down{background:#ef4444}
+.msg{border-radius:16px;padding:12px 16px;margin:0 0 12px;font-size:.95rem;max-width:92%;overflow-wrap:anywhere}
+.msg.me{background:var(--acc);color:#fff;margin-left:auto;border-bottom-right-radius:4px}
+.msg.bot{background:var(--card);border:1px solid var(--line);border-bottom-left-radius:4px}.msg h2{font-size:.8rem;margin:0 0 6px;color:var(--acc);letter-spacing:.04em;text-transform:uppercase}
+.msg a{color:var(--link);text-decoration:none;font-weight:600}.src{display:flex;flex-direction:column;gap:2px;margin-top:10px;font-size:.78rem}.src a{font-weight:400;color:var(--mute)}
+.chatform{display:flex;gap:8px;margin:6px 0 20px;position:sticky;bottom:8px}.chatform[hidden]{display:none}.chatform input{padding:12px 18px;flex:1;min-width:0}
+.chatform button{background:var(--acc);color:#fff;border:0;border-radius:999px;padding:0 16px;font:inherit;cursor:pointer}.chatform button[type=button]{background:var(--card);color:var(--fg);border:1px solid var(--line)}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.chips h2{width:100%;font-size:1rem;margin:0}
 .chips button{background:var(--card);border:1px solid var(--line);color:var(--fg);padding:8px 14px;border-radius:999px;font:inherit;font-size:.9rem;cursor:pointer}
 </style></head><body><div id="account" class="acct"></div>
@@ -51,7 +57,7 @@ nav button[aria-selected=true]{color:var(--acc);border-color:var(--acc);font-wei
 <div class="box"><input id="q" type="text" placeholder="Search the web…" autofocus autocomplete="off" aria-label="Search" aria-autocomplete="list" enterkeyhint="search"><button id="aibtn" class="aib" type="button">AI Mode →</button><ul id="sug" role="listbox" hidden></ul></div>
 <div class="btns" id="btns"><button id="srch" type="button">Deluxe Search</button><button id="lucky" type="button">I'm Feeling Lucky</button><button id="mysites" type="button">My sites</button></div>
 <nav id="tabs" role="tablist"></nav>
-<div class="meta" id="meta" aria-live="polite"></div><div id="ai"></div><div id="out"></div><div class="chips" id="rel"></div><details class="def" id="def"><summary>Make Deluxe Search your default search engine</summary>
+<div class="meta" id="meta" aria-live="polite"></div><div id="ai"></div><form id="cf" class="chatform" hidden><input id="cq" placeholder="Ask a follow-up…" autocomplete="off" aria-label="Follow-up question"><button>Send</button><button type="button" id="newchat">New chat</button></form><div id="out"></div><div class="chips" id="rel"></div><details class="def" id="def"><summary>Make Deluxe Search your default search engine</summary>
 <p>Your search URL: <code id="url"></code></p><button id="copy" type="button">Copy search URL</button>
 <ul><li><b>Chrome (computer):</b> Settings → Search engine → Manage search engines → Add. Name it Deluxe Search, paste the URL above (the <code>%s</code> is where your search words go), then choose Make default.</li>
 <li><b>Chrome (Android):</b> visit this site and search once, then Settings → Search engine → pick Deluxe Search.</li>
@@ -102,11 +108,11 @@ async function go(q){
   document.querySelectorAll("#tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.t===tab));
   document.querySelector("#tabs [aria-selected=true]")?.scrollIntoView({inline:"center",block:"nearest"});
   history.replaceState(null,"",q?`?q=${encodeURIComponent(q)}&tab=${tab}`:location.pathname);
-  $("ai").innerHTML=$("out").innerHTML="";
+  $("ai").innerHTML=$("out").innerHTML="";$("cf").hidden=true;
   if(tab==="sites"){$("rel").innerHTML="";return sitesTab(id)}
   if(!q){$("meta").textContent=$("out").innerHTML=$("rel").innerHTML="";return}
   if(tab==="all")overview(q,id);
-  if(tab==="ai"){$("meta").textContent="Thinking…";return aiTab(q,id)}
+  if(tab==="ai")return aiTab(q)
   let d;try{const r=await fetch(`/api/query?q=${encodeURIComponent(q)}&tab=${tab}`);if(!r.ok)throw 0;d=await r.json()}
   catch{if(id===n)$("meta").textContent="Search failed, try again";return}
   if(id!==n)return; // stale response
@@ -123,16 +129,31 @@ async function sitesTab(id){
   $("meta").textContent=`${up} of ${d.sites.length} sites online`;
   $("out").innerHTML=d.sites.map(x=>`<div class="r row"><div><div class="site"><span class="dot ${x.up?"up":"down"}"></span>${x.up?`Online · ${x.ms} ms`:"Not responding"}</div><a class="t" href="${safe(x.url)}" target="_blank" rel="noopener">${esc(x.name)}</a><p>${esc(x.about)}</p></div></div>`).join("");
 }
-const cite=d=>esc(d.answer).replace(/\[(\d+)\]/g,(m,i)=>d.sources[i-1]?`<a href="${safe(d.sources[i-1].url)}" target="_blank" rel="noopener">[${i}]</a>`:m);
-async function aiTab(q,id){
-  $("rel").innerHTML="";
-  let d;try{d=await(await fetch(`/api/query?ai=long&q=${encodeURIComponent(q)}`)).json()}catch{d={error:"network"}}
-  if(id!==n)return;
-  if(d.error||!d.answer){$("meta").textContent="";$("ai").innerHTML=`<div class="ai"><h2>✦ AI</h2>AI is unavailable: ${esc(d.error||"no answer")}.</div>`;return}
-  $("meta").textContent="";
-  $("ai").innerHTML=`<div class="ai"><h2>✦ AI</h2>${cite(d).replace(/\n+/g,"<br><br>")}<small>AI-generated from web results. May be wrong.</small></div>`;
-  $("out").innerHTML=d.sources.map((r,i)=>`<div class="r"><div class="site">[${i+1}]&nbsp;${esc(new URL(r.url).hostname)}</div><a class="t" href="${safe(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a></div>`).join("");
+const cite=d=>esc(d.answer).replace(/【(\d+)[^】]*】/g,"[$1]").replace(/\[(\d+)\]/g,(m,i)=>d.sources?.[i-1]?`<a href="${safe(d.sources[i-1].url)}" target="_blank" rel="noopener">[${i}]</a>`:m);
+// AI tab = chat. thread holds {role,text,sources,err}; only finished turns are sent to the server.
+let thread=[],busy=false,chatId=0;
+function renderChat(){
+  $("ai").innerHTML=thread.map(m=>m.role==="user"?`<div class="msg me">${esc(m.text)}</div>`
+    :`<div class="msg bot"><h2>✦ AI</h2>${m.err?`AI is unavailable: ${esc(m.err)}.`:cite({answer:m.text,sources:m.sources}).replace(/\n+/g,"<br><br>")}${
+      m.sources?.length?`<div class="src">${m.sources.map((r,i)=>`<a href="${safe(r.url)}" target="_blank" rel="noopener">[${i+1}] ${esc(r.title)}</a>`).join("")}</div>`:""}</div>`).join("")
+    +(busy?'<div class="msg bot">Thinking…</div>':"");
+  $("cf").hidden=!thread.length;$("cq").disabled=busy;
+  $("ai").lastElementChild?.scrollIntoView({block:"nearest"});
 }
+async function send(text){
+  const id=++chatId;thread.push({role:"user",text});busy=true;renderChat();
+  const messages=thread.filter(m=>!m.err).map(m=>({role:m.role,content:m.text})).slice(-11);
+  let d;try{const r=await fetch("/api/query",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({messages})});d=await r.json()}catch{d={error:"network"}}
+  if(id!==chatId)return; // chat was reset meanwhile
+  busy=false;thread.push(d.answer?{role:"assistant",text:d.answer,sources:d.sources}:{role:"assistant",err:d.error||"no answer"});
+  renderChat();if(!$("cq").disabled)$("cq").focus();
+}
+function aiTab(q){
+  $("rel").innerHTML=$("meta").textContent="";
+  if(thread[0]?.text!==q){chatId++;busy=false;thread=[];send(q)}else renderChat(); // same question: keep the conversation
+}
+$("cf").onsubmit=e=>{e.preventDefault();const v=$("cq").value.trim();if(v&&!busy){$("cq").value="";send(v)}};
+$("newchat").onclick=()=>{chatId++;busy=false;thread=[];$("ai").innerHTML="";$("cf").hidden=true;$("q").focus()};
 async function overview(q,id){
   try{const d=await(await fetch(`/api/query?ai=1&q=${encodeURIComponent(q)}`)).json();
     if(id!==n||!d.answer)return;
