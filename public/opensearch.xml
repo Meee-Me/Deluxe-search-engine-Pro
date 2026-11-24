@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
+<ShortName>Deluxe Search</ShortName>
+<Description>Web search with AI answers</Description>
+<InputEncoding>UTF-8</InputEncoding>
+<Image width="192" height="192" type="image/png">https://deluxe-search-engine.vercel.app/icon-192.png</Image>
+<Url type="text/html" method="get" template="https://deluxe-search-engine.vercel.app/?q={searchTerms}"/>
+</OpenSearchDescription>

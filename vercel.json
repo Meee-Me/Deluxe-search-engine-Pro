@@ -1,1 +1,1 @@
-{ "outputDirectory": "public" }
+{ "outputDirectory": "public", "headers": [{ "source": "/opensearch.xml", "headers": [{ "key": "Content-Type", "value": "application/opensearchdescription+xml" }] }] }
