@@ -2,34 +2,72 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Deluxe Search</title>
 <style>
-:root{--bg:#fff;--fg:#1a1a2e;--mute:#6b7280;--card:#f6f7fb;--acc:#5b5bf0;color-scheme:light dark}
-@media(prefers-color-scheme:dark){:root{--bg:#0f1020;--fg:#eceaff;--mute:#9aa0b4;--card:#1a1b30;--acc:#8b8bff}}
+:root{--bg:#fff;--fg:#1f2430;--mute:#6b7280;--card:#f3f4f9;--acc:#4f46e5;--link:#1a56db;--line:#e5e7eb;color-scheme:light dark}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1020;--fg:#eceaff;--mute:#9aa0b4;--card:#1a1b30;--acc:#8b8bff;--link:#8ab4ff;--line:#2a2c46}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,sans-serif}
-main{max-width:720px;margin:0 auto;padding:12vh 16px 48px;transition:padding .3s}main.has{padding-top:32px}
-h1{font-size:2.2rem;margin:0 0 20px;text-align:center}h1 span{color:var(--acc)}
-input{width:100%;padding:16px 20px;font-size:1.1rem;border:2px solid transparent;border-radius:999px;background:var(--card);color:var(--fg);outline:0}
+main{max-width:760px;margin:0 auto;padding:14vh 16px 48px}main.has{padding-top:16px}
+h1{font-size:2.4rem;margin:0 0 22px;text-align:center;letter-spacing:-.02em}h1 span{color:var(--acc)}
+main.has h1{font-size:1.4rem;text-align:left;margin-bottom:12px}
+input{width:100%;padding:14px 20px;font-size:1.05rem;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--fg);outline:0;box-shadow:0 1px 6px #0001}
 input:focus{border-color:var(--acc)}
-.meta{color:var(--mute);font-size:.85rem;margin:16px 4px}
-.r{background:var(--card);border-radius:12px;padding:14px 18px;margin-bottom:12px}
-.r a{color:var(--acc);font-weight:600;text-decoration:none;font-size:1.05rem}.r a:hover{text-decoration:underline}.r u{display:block;color:var(--mute);font-size:.8rem;text-decoration:none;word-break:break-all}.r small{color:var(--mute);float:right}
-.r p{margin:6px 0 0;color:var(--mute);font-size:.92rem;overflow-wrap:anywhere}
+nav{display:none;gap:4px;margin:12px 0 0;border-bottom:1px solid var(--line);overflow-x:auto}main.has nav{display:flex}
+nav button{background:none;border:0;border-bottom:3px solid transparent;padding:10px 14px;font:inherit;color:var(--mute);cursor:pointer;white-space:nowrap}
+nav button[aria-selected=true]{color:var(--acc);border-color:var(--acc);font-weight:600}
+.meta{color:var(--mute);font-size:.82rem;margin:14px 2px}
+.r{margin:0 0 26px}.r.row{display:flex;gap:14px;justify-content:space-between}.r.row>div{min-width:0}
+.site{display:flex;align-items:center;gap:10px;color:var(--mute);font-size:.82rem;margin-bottom:2px;min-width:0}
+.site img{width:26px;height:26px;border-radius:50%;background:var(--card);padding:3px;flex:none}
+.site b{color:var(--fg);font-weight:500;display:block}.site i{font-style:normal;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.site div{min-width:0}
+.t{color:var(--link);font-size:1.15rem;line-height:1.3;text-decoration:none;display:block;margin:2px 0 4px}.t:hover{text-decoration:underline}
+.r p{margin:0;color:var(--mute);font-size:.92rem;overflow-wrap:anywhere}
+.thumb{width:104px;height:104px;object-fit:cover;border-radius:12px;flex:none;background:var(--card)}
+.r.row.vid .thumb{width:150px;height:90px}
+.grid{columns:2;column-gap:10px}.grid a{display:block;break-inside:avoid;margin-bottom:14px;text-decoration:none;color:var(--fg);font-size:.82rem}
+.grid img{width:100%;border-radius:12px;display:block;background:var(--card)}.grid small{color:var(--mute);display:block}
+@media(min-width:640px){.grid{columns:3}}
 mark{background:#ffd54f55;color:inherit;border-radius:3px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.chips h2{width:100%;font-size:1rem;margin:0}
+.chips button{background:var(--card);border:1px solid var(--line);color:var(--fg);padding:8px 14px;border-radius:999px;font:inherit;font-size:.9rem;cursor:pointer}
 </style></head><body><main id="m">
 <h1>Deluxe <span>Search</span></h1>
-<input id="q" placeholder="Search the web…" autofocus autocomplete="off" aria-label="Search">
-<div class="meta" id="meta" aria-live="polite"></div><div id="out"></div></main>
+<input id="q" type="search" placeholder="Search the web…" autofocus autocomplete="off" aria-label="Search">
+<nav id="tabs" role="tablist"></nav>
+<div class="meta" id="meta" aria-live="polite"></div><div id="out"></div><div class="chips" id="rel"></div></main>
 <script>
-const $=id=>document.getElementById(id),esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-let t,n=0;
-$("q").addEventListener("input",()=>{clearTimeout(t);t=setTimeout(go,200)});
-async function go(){
-  const q=$("q").value.trim(),id=++n;
-  $("m").classList.toggle("has",!!q);
-  if(!q){$("meta").textContent="";$("out").innerHTML="";return}
-  let d;try{const r=await fetch("/api/query?q="+encodeURIComponent(q));if(!r.ok)throw 0;d=await r.json()}catch{if(id===n)$("meta").textContent="Search failed, try again";return}
-  if(id!==n)return; // stale response
-  const re=new RegExp("("+(q.match(/\w+/g)||["$^"]).join("|")+")","gi");
-  $("meta").textContent=d.results.length?`${d.results.length} results · via ${d.source}`:"No results";
-  $("out").innerHTML=d.results.map(r=>`<div class="r"><u>${esc(r.url)}</u><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a><p>${esc(r.snippet).replace(re,"<mark>$1</mark>")}</p></div>`).join("");
+const $=id=>document.getElementById(id),
+esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])),
+safe=u=>/^https?:\/\//i.test(u)?esc(u):"#"; // blocks javascript: links from API data
+const TABS={all:"All",images:"Images",videos:"Videos",news:"News"};
+let tab="all",t,n=0;
+$("tabs").innerHTML=Object.entries(TABS).map(([k,v])=>`<button role="tab" data-t="${k}">${v}</button>`).join("");
+$("tabs").onclick=e=>{const k=e.target.dataset.t;if(k){tab=k;go()}};
+$("q").addEventListener("input",()=>{clearTimeout(t);t=setTimeout(go,300)});
+$("q").addEventListener("keydown",e=>{if(e.key==="Enter"){clearTimeout(t);go()}});
+const fav=s=>`<img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(s)}&sz=64" alt="" loading="lazy">`,
+thumb=u=>/^https?:\/\//i.test(u)?`<img class="thumb" src="${esc(u)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:"";
+function card(r,hl){
+  const sn=hl(esc(r.snippet||""));
+  if(tab==="images")return `<a href="${safe(r.url)}" target="_blank" rel="noopener"><img src="${esc(r.img)}" alt="${esc(r.title)}" loading="lazy" referrerpolicy="no-referrer"><span>${esc(r.title)}</span><small>${esc(r.site)}</small></a>`;
+  if(tab==="all")return `<div class="r"><div class="site">${fav(r.site)}<div><b>${esc(r.site)}</b><i>${esc(r.url)}</i></div></div><a class="t" href="${safe(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a><p>${sn}</p></div>`;
+  return `<div class="r row ${tab==="videos"?"vid":""}"><div><div class="site">${esc(r.meta)}</div><a class="t" href="${safe(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a><p>${sn}</p></div>${thumb(r.img)}</div>`;
 }
+async function go(q){
+  if(typeof q==="string")$("q").value=q;
+  q=$("q").value.trim();const id=++n;
+  $("m").classList.toggle("has",!!q);
+  document.querySelectorAll("#tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.t===tab));
+  history.replaceState(null,"",q?`?q=${encodeURIComponent(q)}&tab=${tab}`:location.pathname);
+  if(!q){$("meta").textContent=$("out").innerHTML=$("rel").innerHTML="";return}
+  let d;try{const r=await fetch(`/api/query?q=${encodeURIComponent(q)}&tab=${tab}`);if(!r.ok)throw 0;d=await r.json()}
+  catch{if(id===n)$("meta").textContent="Search failed, try again";return}
+  if(id!==n)return; // stale response
+  const re=new RegExp("("+(q.match(/\w+/g)||["$^"]).join("|")+")","gi"),hl=s=>s.replace(re,"<mark>$1</mark>");
+  $("meta").textContent=d.results.length?`${d.results.length} results · via ${d.source}`:(tab!=="all"&&!d.source?`${TABS[tab]} needs a Serper key`:"No results");
+  const html=d.results.map(r=>card(r,hl)).join("");
+  $("out").innerHTML=tab==="images"?`<div class="grid">${html}</div>`:html;
+  $("rel").innerHTML=d.related?.length?`<h2>Related searches</h2>`+d.related.map(x=>`<button>${esc(x)}</button>`).join(""):"";
+}
+$("rel").onclick=e=>{if(e.target.tagName==="BUTTON")go(e.target.textContent)};
+const p=new URLSearchParams(location.search);if(TABS[p.get("tab")])tab=p.get("tab");if(p.get("q"))go(p.get("q"));
 </script></body></html>
