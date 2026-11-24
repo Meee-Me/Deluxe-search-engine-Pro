@@ -125,6 +125,7 @@ async function sitesTab(id){
 }
 const cite=d=>esc(d.answer).replace(/\[(\d+)\]/g,(m,i)=>d.sources[i-1]?`<a href="${safe(d.sources[i-1].url)}" target="_blank" rel="noopener">[${i}]</a>`:m);
 async function aiTab(q,id){
+  $("rel").innerHTML="";
   let d;try{d=await(await fetch(`/api/query?ai=long&q=${encodeURIComponent(q)}`)).json()}catch{d={error:"network"}}
   if(id!==n)return;
   if(d.error||!d.answer){$("meta").textContent="";$("ai").innerHTML=`<div class="ai"><h2>✦ AI</h2>AI is unavailable: ${esc(d.error||"no answer")}.</div>`;return}
