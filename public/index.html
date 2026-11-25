@@ -27,16 +27,16 @@ input{width:100%;padding:13px 22px;font:inherit;font-size:1.02rem;border:1px sol
 .btns button{background:var(--card);border:1px solid transparent;color:var(--fg);padding:9px 18px;border-radius:8px;font:inherit;font-size:.9rem;cursor:pointer}.btns button:hover{border-color:var(--line)}
 nav#tabs{display:none;gap:2px;margin:14px 0 0;border-bottom:1px solid var(--line);overflow-x:auto}main.has nav#tabs{display:flex}
 nav#tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:9px 14px;font:inherit;font-size:.93rem;color:var(--mute);cursor:pointer;white-space:nowrap;margin-bottom:-1px}
-nav#tabs button:hover{color:var(--fg)}nav#tabs button[aria-selected=true]{color:var(--fg);border-color:var(--fg);font-weight:600}
+nav#tabs button[data-t=sites]{margin-left:auto}nav#tabs button:hover{color:var(--fg)}nav#tabs button[aria-selected=true]{color:var(--fg);border-color:var(--fg);font-weight:600}
 .meta{color:var(--mute);font-size:.8rem;margin:14px 0}
 #out,#ai,#pager,#rel,.chatform{max-width:700px}#out:has(.grid){max-width:none}
-.r{margin:0 0 28px}.r.row{display:flex;gap:16px;justify-content:space-between}.r.row>div{min-width:0}
+.r{margin:0 0 26px}.r.row{display:flex;gap:16px;justify-content:space-between}.r.row>div{min-width:0}
 .site{display:flex;align-items:center;gap:10px;color:var(--mute);font-size:.8rem;margin-bottom:3px;min-width:0}
 .site img{width:24px;height:24px;border-radius:50%;background:var(--card);padding:3px;flex:none;border:1px solid var(--line)}
-.site b{color:var(--fg);font-weight:500;display:block;line-height:1.2}.site i{font-style:normal;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.2}
+.site .sl{display:flex;gap:6px;align-items:baseline;white-space:nowrap;overflow:hidden}.site b{color:var(--fg);font-weight:500;flex:none}.site i{font-style:normal;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .site div{min-width:0}
 .t{color:var(--link);font-size:1.12rem;line-height:1.3;text-decoration:none;display:block;margin:2px 0 4px;font-weight:500}.t:hover{text-decoration:underline}
-.r p{margin:0;color:var(--mute);font-size:.92rem;overflow-wrap:anywhere}
+.r p{margin:0;color:var(--mute);font-size:.92rem;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .thumb{width:104px;height:104px;object-fit:cover;border-radius:8px;flex:none;background:var(--card)}.r.row.vid .thumb{width:152px;height:92px}
 .grid{columns:2;column-gap:12px}.grid a{display:block;break-inside:avoid;margin-bottom:16px;text-decoration:none;color:var(--fg);font-size:.82rem}
 .grid img{width:100%;border-radius:6px;display:block;background:var(--card)}.grid small{color:var(--mute);display:block}
@@ -44,7 +44,7 @@ nav#tabs button:hover{color:var(--fg)}nav#tabs button[aria-selected=true]{color:
 .ai{border-left:3px solid var(--acc);padding:2px 0 2px 16px;margin:0 0 28px;font-size:.96rem}
 .ai h2,.msg h2{font:600 .72rem/1 ui-sans-serif,system-ui,sans-serif;margin:0 0 8px;color:var(--acc);letter-spacing:.09em;text-transform:uppercase}
 .ai small{display:block;color:var(--mute);margin-top:8px;font-size:.74rem}.ai a,.msg a{color:var(--link);text-decoration:none;font-weight:600}
-.def{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);font-size:.86rem;color:var(--mute);max-width:700px}.def summary{cursor:pointer;color:var(--mute)}.def summary:hover{color:var(--fg)}
+.def{margin-top:72px;font-size:.82rem;color:var(--mute);max-width:700px}.def summary{cursor:pointer;color:var(--mute)}.def summary:hover{color:var(--fg)}
 .def ul{padding-left:18px}.def code{background:var(--card);padding:2px 6px;border-radius:5px;word-break:break-all}.def button{margin-top:6px;background:var(--fg);color:var(--bg);border:0;border-radius:8px;padding:8px 14px;font:inherit;cursor:pointer}
 .dot{width:9px;height:9px;border-radius:50%;flex:none}.dot.up{background:#2f9e5b}.dot.down{background:#d64545}
 .msg{margin:0 0 18px;font-size:.96rem;overflow-wrap:anywhere}
@@ -53,12 +53,14 @@ nav#tabs button:hover{color:var(--fg)}nav#tabs button[aria-selected=true]{color:
 .src{display:flex;flex-direction:column;gap:2px;margin-top:10px;font-size:.78rem}.src a{font-weight:400;color:var(--mute)}.src a:hover{color:var(--link)}
 .chatform{display:flex;gap:8px;margin:6px 0 20px;position:sticky;bottom:10px;background:var(--bg);padding:6px 0}.chatform[hidden]{display:none}.chatform input{flex:1;min-width:0}
 .chatform button{background:var(--fg);color:var(--bg);border:0;border-radius:999px;padding:0 18px;font:inherit;cursor:pointer}.chatform button[type=button]{background:none;color:var(--mute);border:1px solid var(--line)}
-.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.chips h2{width:100%;font-size:.95rem;margin:0 0 2px;font-weight:600}
-.chips button{background:var(--card);border:1px solid transparent;color:var(--fg);padding:7px 13px;border-radius:8px;font:inherit;font-size:.88rem;cursor:pointer}.chips button:hover{border-color:var(--line)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.chips h2{width:100%;font-size:.72rem;margin:0 0 2px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--mute)}
+.chips button{background:none;border:1px solid var(--line);color:var(--fg);padding:6px 12px;border-radius:8px;font:inherit;font-size:.86rem;cursor:pointer}.chips button:hover{border-color:var(--line)}
 .pager{display:flex;gap:4px;align-items:center;margin:8px 0 28px;flex-wrap:wrap}
 .pager button{min-width:38px;height:38px;border:0;background:none;border-radius:8px;font:inherit;color:var(--link);cursor:pointer;padding:0 10px}
+@media(max-width:480px){.pager{gap:0}.pager button{min-width:34px;padding:0 6px}}
 .pager button:hover:not(:disabled){background:var(--card)}.pager button[aria-current=page]{background:var(--fg);color:var(--bg);cursor:default}.pager button:disabled{color:var(--mute);opacity:.5;cursor:default}
 .acct{position:fixed;top:10px;right:12px;z-index:20}
+@media(min-width:641px){main.has .top{padding-right:200px}}@media(max-width:640px){main.has{padding-top:58px}}
 </style></head><body><div id="account" class="acct"></div>
 <main id="m">
 <header class="top"><h1><img src="/icon.svg" alt="" width="44" height="44"><span>Deluxe <em>Search</em></span></h1>
@@ -104,10 +106,11 @@ $("lucky").onclick=async()=>{const q=$("q").value.trim();if(!q)return;closeSug()
   tab="all";go()};
 const fav=s=>`<img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(s)}&sz=64" alt="" loading="lazy">`,
 thumb=u=>/^https?:\/\//i.test(u)?`<img class="thumb" src="${esc(u)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:"";
+const pathOf=u=>{try{const x=new URL(u);return decodeURI((x.pathname+x.search).replace(/\/$/,"")).replace(/^\//,"").split("/").filter(Boolean).slice(0,3).map(t=>"› "+t).join(" ")}catch{return ""}};
 function card(r){
   const sn=esc(r.snippet||"");
   if(tab==="images")return `<a href="${safe(r.url)}" target="_blank" rel="noopener"><img src="${esc(r.img)}" alt="${esc(r.title)}" loading="lazy" referrerpolicy="no-referrer"><span>${esc(r.title)}</span><small>${esc(r.site)}</small></a>`;
-  if(tab==="all")return `<div class="r"><div class="site">${fav(r.site)}<div><b>${esc(r.site)}</b><i>${esc(r.url)}</i></div></div><a class="t" href="${safe(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a><p>${sn}</p></div>`;
+  if(tab==="all")return `<div class="r"><div class="site">${fav(r.site)}<div class="sl"><b>${esc(r.site)}</b><i>${esc(pathOf(r.url))}</i></div></div><a class="t" href="${safe(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a><p>${sn}</p></div>`;
   return `<div class="r row ${tab==="videos"?"vid":""}"><div><div class="site">${esc(r.meta)}</div><a class="t" href="${safe(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a><p>${sn}</p></div>${thumb(r.img)}</div>`;
 }
 async function go(q,pg){
@@ -126,7 +129,7 @@ async function go(q,pg){
   let d;try{const r=await fetch(`/api/query?q=${encodeURIComponent(q)}&tab=${tab}&page=${page}`);if(!r.ok)throw 0;d=await r.json()}
   catch{if(id===n)$("meta").textContent="Search failed, try again";return}
   if(id!==n)return; // stale response
-    $("meta").textContent=d.results.length?`Page ${page} · ${d.results.length} results · via ${d.source}`:(tab!=="all"&&!d.source?`${TABS[tab]} needs a Serper key`:"No results");
+    $("meta").textContent=d.results.length?(page>1?`Page ${page}`:""):(tab!=="all"&&!d.source?`${TABS[tab]} needs a Serper key`:"No results");
   const html=d.results.map(r=>card(r)).join("");
   $("out").innerHTML=tab==="images"?`<div class="grid">${html}</div>`:html;
   renderPager(d.results.length);
