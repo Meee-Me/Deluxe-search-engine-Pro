@@ -22,7 +22,9 @@ input{width:100%;padding:13px 22px;font:inherit;font-size:1.02rem;border:1px sol
 .aib{position:absolute;right:7px;top:50%;transform:translateY(-50%);background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font:inherit;font-size:.84rem;cursor:pointer}.aib:hover{border-color:var(--acc);color:var(--acc)}
 #sug{position:absolute;left:0;right:0;top:calc(100% + 6px);background:var(--bg);border:1px solid var(--line);border-radius:14px;list-style:none;margin:0;padding:6px;z-index:10;max-height:60vh;overflow:auto;box-shadow:0 6px 20px #0000001a}
 #sug[hidden]{display:none}#sug li{padding:9px 12px;border-radius:8px;cursor:pointer;display:flex;gap:12px;align-items:center}#sug li.on,#sug li:hover{background:var(--card)}
-#sug svg{width:15px;height:15px;flex:none;color:var(--mute)}
+#sug svg{width:15px;height:15px;flex:none;color:var(--mute)}#sug li span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#sug .x{margin-left:auto;background:none;border:0;color:var(--mute);font-size:1.15rem;line-height:1;cursor:pointer;padding:0 6px}#sug .x:hover{color:var(--fg)}
+#sug li.clr{justify-content:center;color:var(--mute);font-size:.82rem;border-top:1px solid var(--line);border-radius:0 0 8px 8px;margin-top:4px}
 .btns{display:flex;gap:10px;justify-content:center;margin-top:26px}main.has .btns{display:none}
 .btns button{background:var(--card);border:1px solid transparent;color:var(--fg);padding:9px 18px;border-radius:8px;font:inherit;font-size:.9rem;cursor:pointer}.btns button:hover{border-color:var(--line)}
 nav#tabs{display:none;gap:2px;margin:14px 0 0;border-bottom:1px solid var(--line);overflow-x:auto}main.has nav#tabs{display:flex}
@@ -85,12 +87,45 @@ $("tabs").innerHTML=Object.entries(TABS).map(([k,v])=>`<button role="tab" data-t
 $("tabs").onclick=e=>{const k=e.target.dataset.t;if(k){tab=k;go()}};
 let sugT,sugN=0,sel=-1,items=[];
 const closeSug=()=>{sugN++;$("sug").hidden=true;sel=-1;items=[]};
-$("q").addEventListener("input",()=>{clearTimeout(sugT);const v=$("q").value.trim();if(!v)return closeSug();sugT=setTimeout(()=>suggest(v),150)});
-async function suggest(v){const id=++sugN;
+$("q").addEventListener("input",()=>{clearTimeout(sugT);const v=$("q").value.trim();if(!v){closeSug();return showHist()}sugT=setTimeout(()=>suggest(v),150)});
+// Search history lives in the signed-in Deluxe account (Deluxe.data, app "search"); signed-out visitors save nothing.
+const CLK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>';
+const store=()=>window.Deluxe&&Deluxe.user&&Deluxe.user()?Deluxe.data:null;
+let hist=[],lastSaved="";
+async function loadHist(){
+  const d=store();hist=[];
+  if(d)try{hist=(await d.list({prefix:"h/",limit:300})).filter(x=>x.value&&x.value.q).map(x=>({key:x.key,q:x.value.q,t:x.updatedAt})).sort((a,b)=>b.t-a.t)}catch{}
+  if(document.activeElement===$("q"))showHist();
+}
+async function saveHist(q){
+  const d=store(),norm=q.trim().toLowerCase();if(!d||!norm)return;
+  try{
+    const h="h/"+[...new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(norm)))].slice(0,12).map(b=>b.toString(16).padStart(2,"0")).join("");
+    await d.put(h,{q:q.trim().slice(0,200)});
+    hist=[{key:h,q:q.trim(),t:Date.now()},...hist.filter(x=>x.key!==h)];
+    if(hist.length>300)await d.batch({delete:hist.splice(250).map(x=>x.key)}); // shortcut: keeps the newest 250 once 300 are saved
+  }catch{}
+}
+const drawSug=(entries,withClear)=>{
+  items=entries.map(e=>e.text);sel=-1;
+  $("sug").innerHTML=entries.map((e,i)=>`<li role="option" data-i="${i}">${e.k?CLK:MAG}<span>${esc(e.text)}</span>${e.k?`<button class="x" type="button" data-k="${esc(e.k)}" aria-label="Remove from history">×</button>`:""}</li>`).join("")+(withClear?'<li class="clr" data-clear="1">Clear history</li>':"");
+  $("sug").hidden=!entries.length;
+};
+function showHist(){if(!$("q").value.trim()&&hist.length)drawSug(hist.slice(0,8).map(h=>({text:h.q,k:h.key})),true)}
+async function delHist(k){hist=hist.filter(x=>x.key!==k);try{await store()?.remove(k)}catch{}hist.length?showHist():closeSug()}
+async function clearHist(){hist=[];closeSug();try{await store()?.clear("h/")}catch{}}
+async function suggest(v){const id=++sugN,lv=v.toLowerCase();
+  const mine=hist.filter(h=>h.q.toLowerCase().includes(lv)&&h.q.toLowerCase()!==lv).slice(0,3).map(h=>({text:h.q,k:h.key}));
+  if(mine.length)drawSug(mine);
   try{const d=await(await fetch(`/api/query?suggest=1&q=${encodeURIComponent(v)}`)).json();
-    if(id!==sugN||!d.suggestions?.length)return;
-    items=d.suggestions;sel=-1;$("sug").innerHTML=items.map((x,i)=>`<li role="option" data-i="${i}">${MAG}<span>${esc(x)}</span></li>`).join("");$("sug").hidden=false}catch{}}
-$("sug").addEventListener("mousedown",e=>{const li=e.target.closest("li");if(li){e.preventDefault();closeSug();go(items[li.dataset.i]??li.textContent.trim())}});
+    if(id!==sugN)return;
+    const rest=(d.suggestions||[]).filter(x=>!mine.some(m=>m.text.toLowerCase()===x.toLowerCase())).map(text=>({text}));
+    if(mine.length||rest.length)drawSug([...mine,...rest])}catch{}}
+$("sug").addEventListener("mousedown",e=>{e.preventDefault();
+  const x=e.target.closest(".x");if(x)return delHist(x.dataset.k);
+  if(e.target.closest("[data-clear]"))return clearHist();
+  const li=e.target.closest("li[data-i]");if(li){closeSug();go(items[li.dataset.i])}});
+$("q").addEventListener("focus",showHist);
 $("q").addEventListener("blur",()=>setTimeout(closeSug,150));
 $("q").addEventListener("keydown",e=>{
   if(e.key==="Enter"){clearTimeout(sugT);closeSug();go()}
@@ -102,7 +137,7 @@ $("aibtn").onclick=()=>{tab="ai";closeSug();go()};
 $("srch").onclick=()=>go();
 $("mysites").onclick=()=>{tab="sites";go()};
 $("lucky").onclick=async()=>{const q=$("q").value.trim();if(!q)return;closeSug();
-  try{const d=await(await fetch(`/api/query?q=${encodeURIComponent(q)}`)).json();const u=d.results?.[0]?.url;if(/^https?:\/\//i.test(u)){location.href=u;return}}catch{}
+  try{const d=await(await fetch(`/api/query?q=${encodeURIComponent(q)}`)).json();const u=d.results?.[0]?.url;if(/^https?:\/\//i.test(u)){await saveHist(q);location.href=u;return}}catch{}
   tab="all";go()};
 const fav=s=>`<img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(s)}&sz=64" alt="" loading="lazy">`,
 thumb=u=>/^https?:\/\//i.test(u)?`<img class="thumb" src="${esc(u)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:"";
@@ -124,6 +159,7 @@ async function go(q,pg){
   $("ai").innerHTML=$("out").innerHTML="";$("cf").hidden=true;
   if(tab==="sites"){$("rel").innerHTML="";return sitesTab(id)}
   if(!q){$("meta").textContent=$("out").innerHTML=$("rel").innerHTML="";return}
+  if(page===1&&q!==lastSaved){lastSaved=q;saveHist(q)}
   if(tab==="all")overview(q,id);
   if(tab==="ai")return aiTab(q)
   let d;try{const r=await fetch(`/api/query?q=${encodeURIComponent(q)}&tab=${tab}&page=${page}`);if(!r.ok)throw 0;d=await r.json()}
@@ -183,6 +219,6 @@ async function overview(q,id){
 $("rel").onclick=e=>{if(e.target.tagName==="BUTTON")go(e.target.textContent)};
 const tpl=location.origin+"/?q=%s";$("url").textContent=tpl;
 $("copy").onclick=async()=>{try{await navigator.clipboard.writeText(tpl);$("copy").textContent="Copied ✓"}catch{$("copy").textContent="Select the URL and copy it"}};
-if(window.Deluxe)Deluxe.button($("account")); // sign in with Deluxe Main
+if(window.Deluxe){Deluxe.button($("account"));Deluxe.ready.then(loadHist);Deluxe.onChange(loadHist)} // sign in with Deluxe Main
 const p=new URLSearchParams(location.search);if(TABS[p.get("tab")])tab=p.get("tab");if(p.get("q")||tab==="sites")go(p.get("q")||undefined,Math.min(10,Math.max(1,+p.get("page")||1)));
 </script></body></html>
